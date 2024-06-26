@@ -1,0 +1,133 @@
+---
+import Main from "../../layouts/Main.astro";
+import "./maps.css";
+import "@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css";
+---
+
+<Main title="Mapbox">
+  <div id="map"></div>
+  <!-- <pre id="coordinates" class="coordinates"></pre> -->
+</Main>
+
+<style></style>
+<script>
+  import MapboxGeocoder from "@mapbox/mapbox-gl-geocoder";
+  import mapboxgl, { GeolocateControl, Map, Marker } from "mapbox-gl";
+  import MapboxLanguage from "@mapbox/mapbox-gl-language";
+
+  const geojson = {
+    type: "FeatureCollection",
+    features: [
+      {
+        type: "Feature",
+        properties: {
+          message: "Foo",
+          imageId: 1011,
+          iconSize: [60, 60],
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [-66.324462, -16.024695],
+        },
+      },
+      {
+        type: "Feature",
+        properties: {
+          message: "Bar",
+          imageId: 870,
+          iconSize: [50, 50],
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [-61.21582, -15.971891],
+        },
+      },
+      {
+        type: "Feature",
+        properties: {
+          message: "Baz",
+          imageId: 837,
+          iconSize: [40, 40],
+        },
+        geometry: {
+          type: "Point",
+          coordinates: [-63.292236, -18.281518],
+        },
+      },
+    ],
+  };
+
+  const coordinates = document.getElementById("coordinates");
+
+  const accessToken = "your-access-token-here";
+
+  const map: Map = new Map({
+    accessToken: accessToken,
+    container: "map",
+    style: "mapbox://styles/mapbox/streets-v12",
+    center: [-100.401146, 20.609055],
+    zoom: 11,
+    scrollZoom: true,
+    attributionControl: true,
+  });
+  map.addControl(new MapboxLanguage());
+
+  map.addControl(
+    new GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      trackUserLocation: true,
+      showUserHeading: true,
+    })
+  );
+
+  map.addControl(
+    new MapboxGeocoder({
+      accessToken: accessToken,
+      mapboxgl: mapboxgl,
+      placeholder: "Buscar",
+      language: "es",
+    })
+  );
+
+  map.on("click", () => {
+    map.setLayoutProperty("country-label", "text-field", ["get", "name_es"]);
+  });
+
+  map.on("on", () => {
+    map.setLayoutProperty("country-label", "text-field", ["get", "name_es"]);
+  });
+
+  for (const marker of geojson.features) {
+    // Create a DOM element for each marker.
+    const el = document.createElement("div");
+    const width = marker.properties.iconSize[0];
+    const height = marker.properties.iconSize[1];
+    el.className = "marker";
+    el.style.backgroundImage = `url(https://picsum.photos/id/${marker.properties.imageId}/${width}/${height})`;
+    el.style.width = `${width}px`;
+    el.style.height = `${height}px`;
+    el.style.backgroundSize = "100%";
+
+    el.addEventListener("click", () => {
+      window.alert(marker.properties.message);
+    });
+
+    // Add markers to the map.
+    new Marker(el)
+      .setLngLat([
+        marker.geometry.coordinates[0],
+        marker.geometry.coordinates[1],
+      ])
+      .addTo(map);
+  }
+
+  map.on("click", (e) => {
+    const lngLat = e.lngLat;
+    if (coordinates) {
+      coordinates.style.display = "block";
+      coordinates.innerHTML = `Longitude: ${lngLat.lng}<br />Latitude: ${lngLat.lat}`;
+    }
+  });
+</script>

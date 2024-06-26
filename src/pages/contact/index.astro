@@ -1,0 +1,17 @@
+---
+type Props = {
+
+}
+
+const {} = Astro.props
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+---
+<div>
+    contact page works
+    {JSON.stringify(data)}
+</div>
+
+<style>
+
+</style>
